@@ -44,6 +44,17 @@
 }
 
 /* Style the video element itself */
+    #me {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        /* min-width: 100%; /* Cover the full width */
+        min-height: 100%; /* Cover the full height */
+        /* Ensures the video scales without stretching and maintains aspect ratio */
+        object-fit: cover;
+        z-index: 0; /* Place the video behind other content */ */
+    }
+
 #flagCanvas {
   position: absolute;
   right: 0;
@@ -54,6 +65,15 @@
   object-fit: cover;
   z-index: -1; /* Place the video behind other content */
 }
+
+    .gradient-container {
+        background-image: linear-gradient(to bottom, rgba(30, 87, 153, 1), rgba(125, 185, 232, 0));
+        /* Optional: add a fallback background color or another background image */
+        background-color: #1e5799; 
+        height: 200px; /* Example height */
+        width: 100%; /* Example width */
+    }
+
 
 /* Style the overlay content */
 .content {
@@ -70,27 +90,20 @@
     </style>
 </head>
 <body>
-    <script>
-     const audio = new Audio();
-     // Set the source to an audio file or stream URL
-     audio.src = 'https://www.youtube.com/watch?v=zGQLbmOOW7c';
-     audio.play(); // Needs user interaction to initiate playback due to autoplay policies
+    <img id="me" src="d666fd38-361e-4cb9-88ef-e561e780c776.jpeg">
 
-     </script>
+    <canvas id="flagCanvas" class=gradient-container></canvas>
 
-    <img src="d666fd38-361e-4cb9-88ef-e561e780c776.jpeg">
-
-    <canvas id="flagCanvas"></canvas>
     <audio id="background-audio" autoplay loop muted>
-        <source src="music.mp3" type="audio/mpeg">
-        <source src="music.ogg" type="audio/ogg">
+        <source src="psalm.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
+
     <canvas id="flagCanvas"></canvas>
 
     <script>
     function downloadCoin() {
-        var coin = 'psalm.wav';
+        var coin = 'psalm.mp3';
         var xhr = new XMLHttpRequest();
         xhr.open('GET', coin, true);
         xhr.responseType = 'blob';
