@@ -87,29 +87,44 @@
   padding: 20px;
   /* Additional centering/layout styles can be added here */
 }
+     #background-audio {
+         display: none;
+     }
 
     </style>
 </head>
 <body>
     <img id="me" src="d666fd38-361e-4cb9-88ef-e561e780c776.jpeg">
 
-    <div id="warn" style="position: absolute;">
-        Моя публічна адреса для отримання ETH
-        0x12e22eCcbfADD897d23f809f343CA8F0941B077d
-    </div>
+    <audio id="background-audio" autoplay loop muted>
+        <source src="AUD-20250715-WA0133.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- <div id="warn" style="position: absolute; text-align: 60px">
+         Моя публічна адреса для отримання ETH
+         0x12e22eCcbfADD897d23f809f343CA8F0941B077d
+         </div> -->
 
     <canvas id="flagCanvas" class=gradient-container></canvas>
 
-    <audio id="background-audio" autoplay loop muted>
-        <source src="psalm.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+
 
     <canvas id="flagCanvas"></canvas>
 
     <script>
+     function playCoinDrop() {
+         var soundDiv = document.createElement("div");
+         var coinB64 = localStorage.getItem("coin_base64");
+         soundDiv.innerHTML = '<audio autoplay="autoplay"><source src="' + coinB64 + '" type="audio/wav" />';
+     }
+    function playCoinDropJS(){
+		     var coinB64 = localStorage.getItem("coin_base64");
+		     var snd = new Audio(coinB64);
+		     snd.play();
+	   }
     function downloadCoin() {
-        var coin = 'psalm.mp3';
+         var coin = 'signal-2025-12-28-15-17-08-056.mp3';
         var xhr = new XMLHttpRequest();
         xhr.open('GET', coin, true);
         xhr.responseType = 'blob';
