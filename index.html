@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waving Flag Animation</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            background-image: url(Gemini_Generated_Image_nvmoi4nvmoi4nvmo.png);
+        }
+
+    .clock-container {
+        background: #333;
+        padding: 20px 40px;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    #clock {
+        font-size: 4rem;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+
+        /* Adds a subtle shadow behind the canvas for depth */
+        canvas {
+            position: sticky;
+            filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.3));
+        }
+    /* Style for the container to establish positioning context */
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* 100% of the viewport height */
+  overflow: hidden; /* Ensures no scrollbars if video slightly overflows */
+}
+
+/* Style the video element itself */
+#flagCanvas {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 100%; /* Cover the full width */
+  min-height: 100%; /* Cover the full height */
+  /* Ensures the video scales without stretching and maintains aspect ratio */
+  object-fit: cover;
+  z-index: -1; /* Place the video behind other content */
+}
+
+/* Style the overlay content */
+.content {
+  position: relative; /* Position content above the video */
+  z-index: 1; /* Ensure content is on top */
+  /* Add styling for readability (e.g., text color, background overlay) */
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay for better text contrast */
+  color: #f1f1f1;
+  width: 100%;
+  padding: 20px;
+  /* Additional centering/layout styles can be added here */
+}
+
+    </style>
+</head>
+<body>
+    <script>
+     const audio = new Audio();
+     // Set the source to an audio file or stream URL
+     audio.src = 'https://www.youtube.com/watch?v=zGQLbmOOW7c';
+     audio.play(); // Needs user interaction to initiate playback due to autoplay policies
+
+     </script>
+
+    <img src="d666fd38-361e-4cb9-88ef-e561e780c776.jpeg">
+
+    <canvas id="flagCanvas"></canvas>
+    <audio id="background-audio" autoplay loop muted>
+        <source src="music.mp3" type="audio/mpeg">
+        <source src="music.ogg" type="audio/ogg">
+        Your browser does not support the audio element.
+    </audio>
+    <canvas id="flagCanvas"></canvas>
+
+    <script>
+    function downloadCoin() {
+        var coin = 'psalm.wav';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', coin, true);
+        xhr.responseType = 'blob';
+        xhr.onload = function(e) {
+            if (this.status == 200) {
+                var blob = new Blob([this.response], {
+                    type: 'audio/wav'
+                });
+                var reader = new window.FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = function() {
+                    var coinB64 = reader.result;
+                    var myStorage = localStorage.setItem("coin_base64", coinB64)
+                }
+            }
+        };
+        xhr.send();
+    }
+        const canvas = document.getElementById('flagCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const image = new Image();
+        // NOTE: Replace this URL with the local path to your saved image
+        // (e.g., 'flag.jpg') or a direct image URL.
+        image.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Ukraine.svg/800px-Flag_of_Ukraine.svg.png';
+        // Note: I used a standard wiki flag URL here because browsers block canvas animations on external images without proper CORS headers.
+        // For best results with the generated image, download it to the same folder as this HTML file and change the src to 'your-image-name.jpg'.
+
+        // Animation settings
+        let time = 0;
+        const sliceWidth = 2;       // Width of each vertical image slice in pixels
+        const maxAmplitude = 30;    // Maximum height of the wave at the far right
+        const frequency = 0.015;    // How tight the ripples are
+        const speed = 0.15;         // How fast the wind blows
+
+        image.onload = () => {
+            // Set canvas size to fit the image plus the top/bottom wave amplitude
+            canvas.width = image.width;
+            canvas.height = image.height + maxAmplitude * 2;
+
+            // Start the animation loop
+            animate();
+        };
+
+        function animate() {
+            // Clear the canvas for the next frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let x = 0; x < image.width; x += sliceWidth) {
+                // Calculate how strong the wave should be at this X position.
+                // Multiplying by (x / image.width) pins the left side to 0 (the flagpole)
+                const currentAmplitude = maxAmplitude * (x / image.width);
+
+                // Calculate the wave offset using a sine wave
+                const yOffset = Math.sin(time + (x * frequency)) * currentAmplitude;
+
+                // Draw the vertical slice
+                ctx.drawImage(
+                    image,
+                    x, 0, sliceWidth, image.height,               // Source coordinates (x, y, w, h)
+                    x, maxAmplitude + yOffset, sliceWidth, image.height // Destination coordinates (x, y, w, h)
+                );
+            }
+
+            // Increment time to move the wave forward
+            time += speed;
+
+            // Request the next frame
+            requestAnimationFrame(animate);
+        }
+    </script>
+    <div class="clock-container">
+        <div id="clock">00:00:00</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            // Extract hours, minutes, and seconds
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let seconds = now.getSeconds();
+
+            // Format single digits to have a leading zero (e.g., 9 becomes "09")
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+
+            // Combine into a standard HH:MM:SS format
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            // Update the HTML element
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        // Run the function once immediately so there's no delay
+        updateClock();
+
+        // Update the clock every 1000 milliseconds (1 second)
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

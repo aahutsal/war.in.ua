@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waving Flag Animation</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        /* Adds a subtle shadow behind the canvas for depth */
+        canvas {
+            filter: drop-shadow(5px 15px 15px rgba(0,0,0,0.3));
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="flagCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('flagCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const image = new Image();
+        // NOTE: Replace this URL with the local path to your saved image
+        // (e.g., 'flag.jpg') or a direct image URL.
+        image.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Ukraine.svg/800px-Flag_of_Ukraine.svg.png';
+        // Note: I used a standard wiki flag URL here because browsers block canvas animations on external images without proper CORS headers.
+        // For best results with the generated image, download it to the same folder as this HTML file and change the src to 'your-image-name.jpg'.
+
+        // Animation settings
+        let time = 0;
+        const sliceWidth = 2;       // Width of each vertical image slice in pixels
+        const maxAmplitude = 30;    // Maximum height of the wave at the far right
+        const frequency = 0.015;    // How tight the ripples are
+        const speed = 0.15;         // How fast the wind blows
+
+        image.onload = () => {
+            // Set canvas size to fit the image plus the top/bottom wave amplitude
+            canvas.width = image.width;
+            canvas.height = image.height + maxAmplitude * 2;
+
+            // Start the animation loop
+            animate();
+        };
+
+        function animate() {
+            // Clear the canvas for the next frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let x = 0; x < image.width; x += sliceWidth) {
+                // Calculate how strong the wave should be at this X position.
+                // Multiplying by (x / image.width) pins the left side to 0 (the flagpole)
+                const currentAmplitude = maxAmplitude * (x / image.width);
+
+                // Calculate the wave offset using a sine wave
+                const yOffset = Math.sin(time + (x * frequency)) * currentAmplitude;
+
+                // Draw the vertical slice
+                ctx.drawImage(
+                    image,
+                    x, 0, sliceWidth, image.height,               // Source coordinates (x, y, w, h)
+                    x, maxAmplitude + yOffset, sliceWidth, image.height // Destination coordinates (x, y, w, h)
+                );
+            }
+
+            // Increment time to move the wave forward
+            time += speed;
+
+            // Request the next frame
+            requestAnimationFrame(animate);
+        }
+    </script>
+    <img src="">
+</body>
+</html>
