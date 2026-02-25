@@ -63,34 +63,34 @@ Context to help you recognize words in the static:
 
 Task:
 Correct any errors, omissions, or misheard words in the draft transcript based on what you hear in the audio files. Output ONLY the raw, corrected dialogue in the exact same format as the draft. Do not add commentary. Also, make the conclusion on what that conversation was all about. Output in Ukrainian language.`
-    };
+        };
 
-    // Combine the text prompt with ALL audio files
-    const contentsParts = [promptPart, ...audioParts];
+        // Combine the text prompt with ALL audio files
+        const contentsParts = [promptPart, ...audioParts];
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: "Output strictly the raw dialogue. Do not add introductions or commentary." }]
-        },
-        contents: [{ parts: contentsParts }]
-      })
-    });
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system_instruction: {
+                    parts: [{ text: "Output strictly the raw dialogue. Do not add introductions or commentary." }]
+                },
+                contents: [{ parts: contentsParts }]
+            })
+        });
 
-    const data = await response.json();
+        const data = await response.json();
 
-    if (data.error) {
-      console.error("❌ Gemini API Error:", data.error.message);
-    } else {
-      console.log("\n✅ === CORRECTED TRANSCRIPT ===\n");
-      console.log(data.candidates[0].content.parts[0].text);
+        if (data.error) {
+            console.error("❌ Gemini API Error:", data.error.message);
+        } else {
+            console.log("\n✅ === CORRECTED TRANSCRIPT ===\n");
+            console.log(data.candidates[0].content.parts[0].text);
+        }
+
+    } catch (error) {
+        console.error("❌ An error occurred:", error);
     }
-
-  } catch (error) {
-    console.error("❌ An error occurred:", error);
-  }
 })();
