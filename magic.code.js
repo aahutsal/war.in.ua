@@ -75,7 +75,7 @@ Correct any errors, omissions, or misheard words in the draft transcript based o
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 system_instruction: {
-                    parts: [{ text: "Output strictly the raw dialogue. Do not add introductions or commentary." }]
+                    parts: [{ text: systemInstruction }]
                 },
                 contents: [{ parts: contentsParts }]
             })
