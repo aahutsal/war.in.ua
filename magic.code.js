@@ -93,4 +93,19 @@ Correct any errors, omissions, or misheard words in the draft transcript based o
     } catch (error) {
         console.error("❌ An error occurred:", error);
     }
-})();
+});
+
+const textarea = document.querySelector("textarea");
+// Add a button to trigger transcription manually (optional)
+// Button with speaker icon and Ukrainian text
+const transcribeBtn = document.createElement('button');
+transcribeBtn.innerHTML = '🔊 Розпізнати';
+transcribeBtn.style.marginLeft = '8px';
+transcribeBtn.style.padding = '8px 12px';
+
+// Insert button AFTER the textarea (as a sibling, not child)
+textarea.parentNode.insertBefore(transcribeBtn, textarea.nextSibling);
+
+transcribeBtn.addEventListener('click', function () {
+    transcribeAndCorrectAudio();
+});
