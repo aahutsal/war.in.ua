@@ -1,68 +1,77 @@
-(async function transcribeAndCorrectAudio() {
-  const apiKey = 'AIzaSyDcl1s8-nI3KMmch1hOt_z-XzmKCNJZnUA';
-  const model = 'gemini-2.5-pro';
+const transcribeAndCorrectAudio = (async function() {
+    const apiKey = window.GEMINI_API_KEY || prompt("Enter your Gemini API Key:");
+    window.GEMINI_API_KEY = apiKey; // Store for future use
 
-  const knownCallsigns = "АБРАМ, АГЛАР, АЛИТРИС, АЛИТРИШ, АРБУЗ, АРТИСТ, АРЧИ, АХМАТ, АХМЕД, АХРЫЗ, БАГАБ, БАЙКАЛ, БАРАЖ, БАРАШ, БАТЫР, БАЧА, БЕТОН, БЛЭК, БОГ, БОГА, БОД, БОДУН, БОЛЬШОЙ, БОРЗЫЙ, БОРОС, БОТ, БОЧА, БРАКОНЬЕР, БУБА, БУЛАЙ, БУРАН, ВАГА, ВИКТОР, ВИХРЬ, ВИШНЯ, ВОЛГА, ВОЛНА, ВОРОБЕЙ, ГНЕЗДО, ГНОМ, ГОВЕР, ГОД, ГОНЧАР, ГОРА, ГОФЕР, ГОША, ГРИБ, ГРОМ, ГРОМКИЙ, ГРУЗИН, ГУФИК, ДЕНЧИК, ДЖАНГО, ДИНА, ДОБРЫЙ, ДОВЖИК, ДОЗОР, ДОРОГОЙ, ДРУИД, ДУТЫЙ, ДЫНЯ, ДЭНЧИК, ЕЖИК, ЕФИМ, ЖАРА, ЖЕКА, ЖИВЧИК, ЖУЖИК, ЖУЛИК, ЗАРЯ, ЗЕМА, ЗОРЯ, ИРКУТ, ИРТЫШ, ИСАУЛ, КАБАН, КАВКАЗ, КАЗАХ, КАЗБЕК, КАЛДОН, КАЛУЗИН, КАМЫШ, КАРА, КАСКАД, КАСПЕР, КАССИР, КАСТЕТ, КБ, КЕША, КИЛЯ, КИРГИЗ, КЛИМ, КОБА, КОЗАХ, КОКА, КОЛДОН, КОЛДУН, КОНЬ, КОЩЕЙ, КРЕСТ, КРЕСТИК, КРУЗ, КРЫМ, КУВАЛДА, КУЗЯ, КУЛАГА, КУЧЕР, ЛАБУС, ЛАСТИК, ЛЕГЕЗИД, ЛЕГО, ЛЕМУР, ЛИМОН, ЛИМУР, ЛИС, ЛИСТИК, ЛОБА, ЛУЧИК, ЛЫСЫЙ, ЛЮТЫЙ, МАЖОР, МАЛАЙ, МАЛОЙ, МАЛЫШ, МАМАЙ, МАМОНТ, МАРАТ, МАЯК, МЕДВЕДЬ, МЕЛОМАН, МЕХАН, МИКРОФОН, МИХАЛЫЧ, МИХЕЙ, МОНГОЛ, МОРГАН, МОРДОР, МОРЯК, МОСКВА, МОТОРИСТ, МРАК, МУЗЫКАНТ, МУРАТ, НЕГР, НЕМЕЦ, НОСИ, ОКУНЬ, ОЛИМП, ОРЕЛ, ОСИП, ОТЕЦ, ПАК, ПРОФИ, ПРЯНИК, ПСИХ, ПУХ, ПЧЕЛА, РАТ, РАТНИК, РЕКВИЗИТ, РОН, РУС, РЫЖИЙ, САПУН, САТЕН, САФОН, СВЕТЛЫЙ, СВЯТОЙ, СЕЛИКУТА, СЕМЬ, СЕНА, СИМ СИМ, СКИВА, СМАЙЛ, СНЕГ, СОВА, СОКОЛ, СОЛОМА, СОРОКА, СОТЕН, СПАРТАК, СТАВРИК, СТАРЫЙ, СТРЕЛЕЦ, СУЕТА, СУЛТАН, СУМАТОХА, СУМРАК, СЫРКА, ТАЛАЛАЙ, ТАМЕРЛАН, ТАНЦОР, ТАТАРИН, ТОЛСТЫЙ, ТОМАС, ТОПОЛЬ, ТТ, ТУВА, ТУВИК, ТУЗИК, ТУМАН, ТУРИК, УРАЙ, УСИК, УФА, ФАРА, ФАРТОВЫЙ, ФЕНИКС, ФИЛДОН, ФИЛИН, ФИЛЯ, ФИН, ФМН, ФОКУСНИК, ХАЛЯВА, ХАН, ХАЧИК, ХИМИК, ХОДОК, ХОРА, ХРОМОЙ, ХУДРУК, ЦЕПУН, ЧАВА, ЧАУС, ЧЕВА, ЧЕЛА, ЧЕЛДОН, ЧЕРНОМОР, ЧЕХ, ЧИКА, ЧИНГИЗ, ЧОВА, ЧУБА, ЧУГУН, ЧУДАК, ЧУДО, ЧУЛА, ЧУЛДОН, ШАИАН, ШАМАН, ШАТЕН, ШЕГОЛ, ШЕЛДОН, ШИРКА, ШИФЕР, ШКАЛИК, ШМЕЛЬ, ШУГУР, ШУМИХА, ЩЕГОЛ, ЭЛЬДАР, ЯКУТ, ЯРЫЙ, ЯСЫРКА";
-  const specialWords = "циркулярно,Костлявая,Старя,не прошло,повтори,180,200,300,350";
+    const model = 'gemini-2.5-flash-lite';
 
-  // 💡 DROP YOUR PRE-TRANSCRIBED TEXT HERE
-  const draftTranscript = `
-  — Татарин, 2 ноля 4. Татарин, 2 ноля 4. Как принял?
-  — Центру, Дрон плюс.
-—
-— Ермол, Цыгану связь. Ермол, Цыгану связь.
-— Раскопа. Повтори.
-— Прибыл Барс, Прибыл Барс.
-— Тулан, Тулан, я Молот, я Тулан.
-— Ты слышал? Плюс, плюс.
-— Так, убудут дальше, доклад.
-— Что там, операция закончилась?
-`.trim();
+    const knownCallsigns = "АБРАМ, АГЛАР, АЛИТРИС, АЛИТРИШ, АРБУЗ, АРТИСТ, АРЧИ, АХМАТ, АХМЕД, АХРЫЗ, БАГАБ, БАЙКАЛ, БАРАЖ, БАРАШ, БАТЫР, БАЧА, БЕТОН, БЛЭК, БОГ, БОГА, БОД, БОДУН, БОЛЬШОЙ, БОРЗЫЙ, БОРОС, БОТ, БОЧА, БРАКОНЬЕР, БУБА, БУЛАЙ, БУРАН, ВАГА, ВИКТОР, ВИХРЬ, ВИШНЯ, ВОЛГА, ВОЛНА, ВОРОБЕЙ, ГНЕЗДО, ГНОМ, ГОВЕР, ГОД, ГОНЧАР, ГОРА, ГОФЕР, ГОША, ГРИБ, ГРОМ, ГРОМКИЙ, ГРУЗИН, ГУФИК, ДЕНЧИК, ДЖАНГО, ДИНА, ДОБРЫЙ, ДОВЖИК, ДОЗОР, ДОРОГОЙ, ДРУИД, ДУТЫЙ, ДЫНЯ, ДЭНЧИК, ЕЖИК, ЕФИМ, ЖАРА, ЖЕКА, ЖИВЧИК, ЖУЖИК, ЖУЛИК, ЗАРЯ, ЗЕМА, ЗОРЯ, ИРКУТ, ИРТЫШ, ИСАУЛ, КАБАН, КАВКАЗ, КАЗАХ, КАЗБЕК, КАЛДОН, КАЛУЗИН, КАМЫШ, КАРА, КАСКАД, КАСПЕР, КАССИР, КАСТЕТ, КБ, КЕША, КИЛЯ, КИРГИЗ, КЛИМ, КОБА, КОЗАХ, КОКА, КОЛДОН, КОЛДУН, КОНЬ, КОЩЕЙ, КРЕСТ, КРЕСТИК, КРУЗ, КРЫМ, КУВАЛДА, КУЗЯ, КУЛАГА, КУЧЕР, ЛАБУС, ЛАСТИК, ЛЕГЕЗИД, ЛЕГО, ЛЕМУР, ЛИМОН, ЛИМУР, ЛИС, ЛИСТИК, ЛОБА, ЛУЧИК, ЛЫСЫЙ, ЛЮТЫЙ, МАЖОР, МАЛАЙ, МАЛОЙ, МАЛЫШ, МАМАЙ, МАМОНТ, МАРАТ, МАЯК, МЕДВЕДЬ, МЕЛОМАН, МЕХАН, МИКРОФОН, МИХАЛЫЧ, МИХЕЙ, МОНГОЛ, МОРГАН, МОРДОР, МОРЯК, МОСКВА, МОТОРИСТ, МРАК, МУЗЫКАНТ, МУРАТ, НЕГР, НЕМЕЦ, НОСИ, ОКУНЬ, ОЛИМП, ОРЕЛ, ОСИП, ОТЕЦ, ПАК, ПРОФИ, ПРЯНИК, ПСИХ, ПУХ, ПЧЕЛА, РАТ, РАТНИК, РЕКВИЗИТ, РОН, РУС, РЫЖИЙ, САПУН, САТЕН, САФОН, СВЕТЛЫЙ, СВЯТОЙ, СЕЛИКУТА, СЕМЬ, СЕНА, СИМ СИМ, СКИВА, СМАЙЛ, СНЕГ, СОВА, СОКОЛ, СОЛОМА, СОРОКА, СОТЕН, СПАРТАК, СТАВРИК, СТАРЫЙ, СТРЕЛЕЦ, СУЕТА, СУЛТАН, СУМАТОХА, СУМРАК, СЫРКА, ТАЛАЛАЙ, ТАМЕРЛАН, ТАНЦОР, ТАТАРИН, ТОЛСТЫЙ, ТОМАС, ТОПОЛЬ, ТТ, ТУВА, ТУВИК, ТУЗИК, ТУМАН, ТУРИК, УРАЙ, УСИК, УФА, ФАРА, ФАРТОВЫЙ, ФЕНИКС, ФИЛДОН, ФИЛИН, ФИЛЯ, ФИН, ФМН, ФОКУСНИК, ХАЛЯВА, ХАН, ХАЧИК, ХИМИК, ХОДОК, ХОРА, ХРОМОЙ, ХУДРУК, ЦЕПУН, ЧАВА, ЧАУС, ЧЕВА, ЧЕЛА, ЧЕЛДОН, ЧЕРНОМОР, ЧЕХ, ЧИКА, ЧИНГИЗ, ЧОВА, ЧУБА, ЧУГУН, ЧУДАК, ЧУДО, ЧУЛА, ЧУЛДОН, ШАИАН, ШАМАН, ШАТЕН, ШЕГОЛ, ШЕЛДОН, ШИРКА, ШИФЕР, ШКАЛИК, ШМЕЛЬ, ШУГУР, ШУМИХА, ЩЕГОЛ, ЭЛЬДАР, ЯКУТ, ЯРЫЙ, ЯСЫРКА";
+    const specialWords = "циркулярно,Костлявая,Старя,не прошло,повтори,180,200,300,350";
 
-  console.log("🔍 Step 1: Finding audio sources...");
-  const urls = Array.from(document.querySelectorAll('audio'))
-    .map(audio => audio.src || (audio.querySelector('source[src]')?.src || null))
-    .filter(src => src !== null);
+    // 💡 DROP YOUR PRE-TRANSCRIBED TEXT HERE
+    const draftTranscript = document.querySelector("textarea").textContent.trim();
 
-  if (urls.length === 0) return console.error("❌ No audio sources found.");
+    console.log("🔍 Step 1: Finding audio sources...");
+    const urls = Array.from(document.querySelectorAll('audio'))
+        .map(audio => audio.src || (audio.querySelector('source[src]')?.src || null))
+        .filter(src => src !== null);
 
-  console.log(`📥 Step 2: Fetching ${urls.length} audio files in parallel...`);
+    if (urls.length === 0) return console.error("❌ No audio sources found.");
 
-  try {
-    // Fetch and convert ALL files at the same time (Much faster!)
-    const filePromises = urls.map(async (url) => {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => resolve({
-          inline_data: {
-            mime_type: blob.type || 'audio/mp3',
-            data: reader.result.split(',')[1]
-          }
+    console.log(`📥 Step 2: Fetching ${urls.length} audio files in parallel...`);
+
+    try {
+        // Fetch and convert ALL files at the same time (Much faster!)
+        const filePromises = urls.map(async (url) => {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => resolve({
+                    inline_data: {
+                        mime_type: blob.type || 'audio/mp3',
+                        data: reader.result.split(',')[1]
+                    }
+                });
+                reader.onerror = reject;
+            });
         });
-        reader.onerror = reject;
-      });
-    });
 
-    // Wait for all files to be ready
-    const audioParts = await Promise.all(filePromises);
-    console.log("🚀 Step 3: Sending single batch request to Gemini...");
+        // Wait for all files to be ready
+        const audioParts = await Promise.all(filePromises);
+        console.log("🚀 Step 3: Sending single batch request to Gemini...");
 
-    // Build the prompt part
-    const promptPart = {
-      text: `You are a radio intercept transcriber. Review the provided draft transcript against the attached audio recordings. The audio quality is very poor.
+        // Build the prompt part
+        const systemInstruction = `You are a military radio intercept transcriber.
 
-Draft Transcript:
+TASK:
+1. Correct errors in the draft transcript using audio content
+2. Output ONLY corrected dialogue in original format
+3. Add brief ASSESSMENT in format: "Оцінка: [one sentence max]"
+
+ASSESSMENT rules:
+- State only facts: type of communication (логістика/тактика/розвідка)
+- Subject matter: what is being coordinated/reported
+- Do NOT speculate, add details, or provide analysis
+
+Example good assessments:
+- "Оцінка: Координація доставки вантажу на позиції."
+- "Оцінка: Доповідь про стан матеріального забезпечення."
+- "Оцінка: Управління розміщенням військ і логістикою."
+
+Respond in Ukrainian. Audio quality is poor.`;
+
+        const contextData = {
+            callsigns: knownCallsigns.split(','),
+            jargon: specialWords.split(',')
+        };
+
+        const promptPart = {
+            text: `Draft Transcript:
 ${draftTranscript}
 
-Context to help you recognize words in the static:
-- Known Callsigns: ${knownCallsigns}
-- Special Words/Jargon: ${specialWords}
-
-Task:
-Correct any errors, omissions, or misheard words in the draft transcript based on what you hear in the audio files. Output ONLY the raw, corrected dialogue in the exact same format as the draft. Do not add commentary. Also, make the conclusion on what that conversation was all about. Output in Ukrainian language.`
+Reference Data:
+${JSON.stringify(contextData, null, 2)}`
         };
 
         // Combine the text prompt with ALL audio files
@@ -86,8 +95,12 @@ Correct any errors, omissions, or misheard words in the draft transcript based o
         if (data.error) {
             console.error("❌ Gemini API Error:", data.error.message);
         } else {
-            console.log("\n✅ === CORRECTED TRANSCRIPT ===\n");
-            console.log(data.candidates[0].content.parts[0].text);
+            const parts = data.candidates[0].content.parts[0].text.split('\n');
+            const placeholders = document.querySelectorAll("textarea");
+            console.log("Setting corrected transcript and assessment...", parts);
+            placeholders[0].textContent = parts[0].trim(); // Corrected transcript
+            placeholders[2].textContent = parts[1].trim(); // Corrected conclusion
+
         }
 
     } catch (error) {
@@ -95,17 +108,23 @@ Correct any errors, omissions, or misheard words in the draft transcript based o
     }
 });
 
-const textarea = document.querySelector("textarea");
-// Add a button to trigger transcription manually (optional)
-// Button with speaker icon and Ukrainian text
-const transcribeBtn = document.createElement('button');
-transcribeBtn.innerHTML = '🔊 Розпізнати';
-transcribeBtn.style.marginLeft = '8px';
-transcribeBtn.style.padding = '8px 12px';
+let transcribeBtn = null;
 
-// Insert button AFTER the textarea (as a sibling, not child)
-textarea.parentNode.insertBefore(transcribeBtn, textarea.nextSibling);
+function ensureButton() {
+    const textarea = document.querySelector("textarea");
+    if (!textarea || document.contains(transcribeBtn)) return;
 
-transcribeBtn.addEventListener('click', function () {
-    transcribeAndCorrectAudio();
-});
+    transcribeBtn = document.createElement('button');
+    transcribeBtn.innerHTML = '🔊 Розпізнати';
+    transcribeBtn.type = 'button';
+    transcribeBtn.style.marginLeft = '8px';
+
+    textarea.parentNode.insertBefore(transcribeBtn, textarea.nextSibling);
+    transcribeBtn.addEventListener('click', transcribeAndCorrectAudio);
+}
+
+// Watch for React re-renders
+const observer = new MutationObserver(ensureButton);
+observer.observe(document.body, { childList: true, subtree: true });
+
+ensureButton(); // Initial call
