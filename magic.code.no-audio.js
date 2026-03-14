@@ -3,6 +3,8 @@ let draftTranscript = ``;
     "MuiButtonBase-root MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters MuiMenuItem-root MuiMenuItem-dense MuiMenuItem-gutters RecordCard__title css-1p7vyu5",
     "MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root RecordCard RecordCard_listened css-1l3rfqz"
 ]
+let totalSession = { input: 0, output: 0, thinking: 0 };
+
 function pasteValueIntoTextarea(textarea, value) {
     // Copy value to clipboard
     navigator.clipboard.writeText(value).then(() => {
@@ -59,32 +61,41 @@ const correctWithGemini = (async function (){
     };
         console.log(`📥 Step 2: Preparing request ...`);
 
-    const systemInstruction = `You are a military radio intercept corrector.
-TASK:
-1. Correct errors in the draft transcript
-2. Output ONLY corrected dialogue in original format, Russian language
-3. Add brief ASSESSMENT in format: "[one sentence max], Ukrainian language"
-4. Another sentence may be added in the ASSESTMENT of an important event if such an event occurred during the interception.
-5. Respond ONLY with valid JSON in this format:
+        const systemInstruction = `Ти — коректор військових радіоперехоплень в російсько-українській війні 2022 року, котрий воює на стороні Сил Оборони України (СОУ).
+ЗАВДАННЯ ТА ОБМЕЖЕННЯ:
+Виправ помилки в чорновій транскрипції.
+Текст транскрипції, позивні (включно з позивними в коментаря)х мають бути виведений ТІЛЬКИ російською мовою.
+Форматування діалогу: замість дефісів (-) на початку реплік використовуй імена або позивні абонентів у квадратних дужках.
+Приклад:
+[МИР]: РЕКА, РЕКА МИРУ.
+[РЕКА]: Да, МИР, РЕКА на связи.
+Якщо абонента не вдалось ідентифікувати, використовуй [Н/В] (невідомий).
+Не додумуй нічого, якщо щось не зрозуміло, використовуй ... (три крапки) для позначення незрозумілих слів або фраз.
+Правила встановлення зв'язку:
+- База, База Чёрному: в/сл Чёрный викликає в/сл База
+- Слон, Слон Базе на связь, Слон: в/сл База викликає в/сл Слон
+Числа: всі числові значення (як у транскрипції, так і у висновку) повинні бути записані ВИКЛЮЧНО цифрами (наприклад, 2, 300, 15).
+Позивні: всі ВІДОМІ позивні в тексті повинні бути записані ВЕЛИКИМИ ЛІТЕРАМИ (наприклад, МИР, СОКІЛ).
+Додай короткий ВИСНОВОК (conclusion) українською мовою. Формат: максимум одне речення. Допускається додавання другого речення виключно у випадку, якщо під час перехоплення відбулася важлива подія.
+Відповідай ТІЛЬКИ валідним JSON у такому форматі:
 {
   "transcription": "corrected dialogue here",
   "conclusion": "military assessment here"
   "callsigns": ["list", "of", "callsigns", "mentioned"]
 }
-ASSESSMENT rules:
-- State only facts: type of communication (логістика/тактика/розвідка)
-- Subject matter: what is being coordinated/reported
-- Do NOT speculate, add details, or provide analysis
-
-Example good assessments:
-- "Координація доставки вантажу на позиції."
-- "Доповідь про стан матеріального забезпечення."
-- "Управління розміщенням військ і логістикою."
-
-Respond in Ukrainian.
+Правила для ВИСНОВКУ (conclusion):
+Зазначай лише факти: тип зв'язку (логістика/тактика/розвідка).
+Суть обговорення: що саме координується або про що доповідають.
+Геолокації: Якщо в розмові згадуються назви позицій, лісосмуг або номери точок, ОБОВ'ЯЗКОВО вказуй це у висновку.
+НЕ роби припущень, не додавай від себе деталей і не роби аналітичних висновків.
+Приклади вдалих висновків:
+"Логістика: координація доставки вантажу на позиції біля лісосмуги 4."
+"Тактика: доповідь про стан забезпечення на точці 12. Відбувся артилерійський обстріл."
+"Управління розміщенням військ і координація дій підрозділу."
+Відповідь надавай українською.
 `;
 
-    draftTranscript = document.querySelector("textarea").value.trim();
+draftTranscript = document.querySelector("textarea").value.trim();
     const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
         {
@@ -101,8 +112,27 @@ Respond in Ukrainian.
         }
     );
 
-        let parsedResponse = null;
+    let parsedResponse = null;
     const data = await response.json();
+        const usage = data.usageMetadata;
+        const thinking = usage.totalTokenCount
+            - usage.promptTokenCount
+            - usage.candidatesTokenCount;
+
+        totalSession.input += usage.promptTokenCount;
+        totalSession.output += usage.candidatesTokenCount;
+        totalSession.thinking += thinking;
+
+        const sessionCost =
+            (totalSession.input / 1_000_000) * 0.15 +
+            (totalSession.output / 1_000_000) * 0.60 +
+            (totalSession.thinking / 1_000_000) * 3.50;
+
+        console.log(`[Session] Input: ${totalSession.input} | ` +
+            `Output: ${totalSession.output} | ` +
+            `Thinking: ${totalSession.thinking}`);
+        console.log(`[Session] Cumulative cost: $${sessionCost.toFixed(6)}`);
+
     let rawResponse = data.candidates[0].content.parts[0].text.trim();
     rawResponse = rawResponse.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     parsedResponse = JSON.parse(rawResponse);
@@ -167,36 +197,38 @@ function setupAutoClickListener() {
                         isAutoClicking = true;
                         console.log('▶️ Starting auto-click (Ctrl held)...');
 
+                        let buttons = btns;
+
+                        const idx = buttons.indexOf(btn);
+                        if (idx !== -1) {
+                            buttons = buttons.slice(0, idx);
+                        }
+
+
                         // Auto-click all buttons every 500ms
                         autoClickIntervalId = setInterval(() => {
-                            let buttons = Array.from(document.querySelectorAll(selector));
-
-                            const idx = buttons.indexOf(btn);
-                            if(idx !== -1) {
-                                buttons = buttons.slice(0, idx);
-                            }
-
                             if (buttons.length > 0) {
-                                buttons.forEach((b, i) => {
-                                    // console.log(`🖱️ Auto-clicking button ${i}`);
-                                    b.click();
-                                });
+                                // buttons.forEach((b, i) => {
+                                //     // console.log(`🖱️ Auto-clicking button ${i}`);
+                                //     b.click();
+                                // });
+                                buttons.pop().click();
                             } else {
                                 console.log('⏹️ No buttons found, stopping auto-click');
                                 clearInterval(autoClickIntervalId);
                                 isAutoClicking = false;
                             }
-                        }, 500);
+                        }, 200);
                     });
 
-                    // 🔧 NEW: Add global keyup listener to stop on Ctrl release
-                    document.addEventListener("keyup", (evt) => {
-                        if ((evt.key === 'Control' || evt.key === 'Meta') && isAutoClicking) {
-                            console.log('⏹️ Ctrl released, stopping auto-click');
-                            clearInterval(autoClickIntervalId);
-                            isAutoClicking = false;
-                        }
-                    });
+                    // // 🔧 NEW: Add global keyup listener to stop on Ctrl release
+                    // document.addEventListener("keyup", (evt) => {
+                    //     if ((evt.key === 'Control' || evt.key === 'Meta') && isAutoClicking) {
+                    //         console.log('⏹️ Ctrl released, stopping auto-click');
+                    //         clearInterval(autoClickIntervalId);
+                    //         isAutoClicking = false;
+                    //     }
+                    // });
 
                     btn.dataset.autoClickAttached = 'true';
                     // console.log(`✅ Listener attached to button ${index}`);
